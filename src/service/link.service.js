@@ -4,6 +4,7 @@ const axios = require("axios").default;
 const DecodeService = require('./decoding.entities.js');
 const UrlService = require('./url.service')
 const Insert = require("../inserttable/inserttable")
+const urlsModel = require('../models/urls.model')
 
 class LinkService {
   static async test(furls) {
@@ -94,7 +95,6 @@ class LinkService {
       title.push(htmlOfLinks[i].match(titleRegex));
       robots.push(String(htmlOfLinks[i].match(robotsRegex)));
       favicons.push(htmlOfLinks[i].match(faviconRegex));
-
           //Pushing Information about external links
         for (let x = 0; x < hrefValues.length; x++) {
               externalInfo[i].push(JSON.stringify({
@@ -130,11 +130,8 @@ class LinkService {
           return "Problem"
         }
       }
-
-         const infoLinks = await Insert.insertTable(info);
-         const infoExternals = await UrlService.checkUrls(info);
-
-    return info;
+         const infoLinks = await urlsModel.insertUrls(hrefValues);
+         return info;
   }
 }  
 

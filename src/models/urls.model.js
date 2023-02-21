@@ -4,37 +4,53 @@ const { option } = require("../../connectSQL");
 const knex = require('knex')(option);
 
 let rell = []
-
+let date_1;
+let date_2;
+let days;
 //Connect myDB's Tables
 
- class Data {
+class Data {
 
+  static async insertUrls(data) {
+    for (let int in data) {
+      const insertData = await knex('urls').insert({ external_urls: data[int] });
+
+    }
+
+  }
   static async getUrls() {
 
-    const selectNullableData = await knex.from('urls').select('external_urls', 'id')
-    .orderBy('id')
+    const selectNullableData = await knex.from('urls').select('external_urls',).where('robot_tag',null)
+      .orderBy('id');
 
-      return selectNullableData;
+    return selectNullableData;
 
 
   }
+  static async delData(offset, limit) {
+    const del = await knex('urls').del().where('robot_tag',null)
+  }
+
+
+
 
   static async linksChange() {
-    const change = await knex.from('links').select('urls', 'robot_tag', 'title', 'favicon', 'status', 'id').orderBy('id').where('changeing',null)
-    if(change){
-      
+    const change = await knex.from('links').select('urls', 'robot_tag', 'title', 'favicon', 'status', 'id').orderBy('id');
+    if (change) {
+
       return change
-    }else{
-      console.log('թարմացնելու  տվյալներ չկան․․․')
+    } else {
+      console.log('թարմացնելու  տվյալներ չկան․․․');
     }
-    
+
   }
+
 
   static async getNull() {
     const nullData = await knex.from('urls').select('id').where('changeing', null)
-    if(nullData.length > 0){
+    if (nullData.length > 0) {
       return nullData.length
-    }else{
+    } else {
       console.log('թարմացնելու  տվյալներ չկան․․․')
     }
   }
@@ -45,27 +61,178 @@ let rell = []
   }
 
   static async getIds() {
-    console.log(111);
-    const z = await knex.from('urls').select('id').orderBy('id').where('changeing',null)
-    console.log(z, 2222);
+    const z = await knex.from('urls').select('id').orderBy('id').where('changeing', null)
     return z
 
   }
   static async changeing() {
-    const changerel = await knex.from('urls').select('rel', 'id').orderBy('id');
+    const changerel = await knex.from('urls').select('rel', 'external_urls', 'id').orderBy('id');
     const changekeyword = await knex.from('urls').select('keyword', 'id').orderBy('id');
 
     return [changerel, changekeyword]
 
   }
+
   static async getLimit() {
-    const count = await knex.from('urls').select('id').groupBy('id')
-    if(count.length > 0){
+    const count = await knex.from('urls').select('robot_tag').groupBy('id').where('robot_tag',null)
+    if (count.length > 0) {
       return count.length
-    }else{
+    } else {
       console.log('թարմացնելու  տվյալներ չկան․․․')
     }
 
+  }
+  static async deleteUrls(ids) {
+    const delLinks = await knex.from('links').del().whereIn('id', ids).returning('*');
+    const delUrls = await knex.from('urls').del().whereIn('links_id', ids).returning('*');
+
+    return [delLinks, delUrls]
+  }
+
+
+  static async getLiveUrls() {
+    const getLive = await knex.from('urls').count('id').where('status', '=', 200)
+    console.log(getLive);
+
+    return getLive
+  }
+
+  static async getCrawled() {
+    let countupdate = 0;
+    let leftcountupdate = 0;
+
+
+    const getDofollow = await knex.from('urls').count('id').where('rel', '=', 'dofollow');
+    const getNofollow = await knex.from('urls').count('id').where('rel', '=', 'nofollow');
+    // const selsectTimestamp = await knex.from('urls').select('created_at')
+
+    // for (let index = 0; index < selsectTimestamp.length; index++) {
+    //   date_1 = selsectTimestamp[0].created_at
+    //   date_2 = new Date();
+
+
+    //   days = (date_1, date_2) => {
+    //     let difference = date_1.getTime() - date_2.getTime();
+    //     let TotalDays = Math.ceil(difference / (1000 * 3600 * 24));
+    //     return TotalDays;
+    //   }
+    //   console.log(days, "days");
+
+    //   console.log(days(date_1, date_2));
+    //   if (days(date_1, date_2) < 1) {
+
+    //     countupdate.push(days(date_1, date_2));
+
+    //   } else {
+    //     leftcountupdate.push(days(date_1, date_2))
+    //   }
+    // }
+
+    const selectChangeing = await knex.from('urls').select('changeing');
+    // console.log(selectChangeing);
+
+    for (let index = 0; index < selectChangeing.length; index++) {
+      if (selectChangeing[index].changeing === null) {
+        leftcountupdate += 1
+      } else {
+        countupdate += 1
+      }
+    }
+
+
+    return { "dofollowCount": Number(getDofollow[0].count), "nofollowCount": Number(getNofollow[0].count), "crawledTodayCount": countupdate, "leftForCrawlingCount": leftcountupdate }
+
+
+
+  }
+
+  static async getCrawledById(userId) {
+    let countupdate = 0;
+    let leftcountupdate = 0;
+
+
+    const getDofollow = await knex.from('urls').count('id').where('rel', '=', 'dofollow').andWhere('user_id', '=', userId);
+    const getNofollow = await knex.from('urls').count('id').where('rel', '=', 'nofollow').andWhere('user_id', '=', userId);
+    // const selsectTimestamp = await knex.from('urls').select('created_at').where('user_id', '=', id);
+
+    // for (let index = 0; index < selsectTimestamp.length; index++) {
+    //   date_1 = selsectTimestamp[0].created_at
+    //   date_2 = new Date();
+
+
+    //   days = (date_1, date_2) => {
+    //     let difference = date_1.getTime() - date_2.getTime();
+    //     let TotalDays = Math.ceil(difference / (1000 * 3600 * 24));
+    //     return TotalDays;
+    //   }
+    //   console.log(days, "days");
+
+    //   console.log(days(date_1, date_2));
+    //   if (days(date_1, date_2) < 1) {
+
+    //     countupdate.push(days(date_1, date_2));
+
+    //   } else {
+    //     leftcountupdate.push(days(date_1, date_2))
+    //   }
+    // }
+
+    const selectChangeing = await knex.from('urls').select('changeing').where('user_id', '=', userId);
+    // console.log(selectChangeing);
+
+    for (let index = 0; index < selectChangeing.length; index++) {
+      if (selectChangeing[index].changeing === null) {
+        leftcountupdate += 1
+      } else {
+        countupdate += 1
+      }
+    }
+
+    return { "dofollowCount": Number(getDofollow[0].count), "nofollowCount": Number(getNofollow[0].count), "crawledTodayCount": countupdate, "leftForCrawlingCount": leftcountupdate }
+
+
+
+  }
+
+
+  static async getCrawledLinksCountById(userId) {
+    const links = await knex.from('links').count('id').where('user_id', '=', userId);
+    return links;
+  }
+
+  static async getChangesById(userId, campaignId) {
+   const joinsLinks = await knex.select('*').from('links').innerJoin('changes', function() {
+      this
+        .on('links.campaign_id', '=', 'changes.campaign_id')
+    });
+
+    const joinsUrls = await knex.select('*').from('urls').innerJoin('changes', function() {
+      this
+        .on('urls.campaign_id', '=', 'changes.campaign_id')
+    }).whereNotNull('changeing');
+
+
+
+
+// const getMainChanges = 
+    // const links = await knex.from('changes').count('campaign_id').where('user_id', '=', userId).andWhere('campaign_id', '=', campaignId);
+    // const urls = await knex.from('urls').select('changeing').where('user_id', '=', userId).andWhere('campaign_id', '=', campaignId);
+    // const linksChanges = links.filter((el) => el.changeing !== null);
+    // const urlsChanges = urls.filter((el) => el.changeing !== null);
+    
+    return { linksChanges: joinsLinks.length, urlsChanges: joinsUrls.length};
+  }
+
+
+  static async getFailed() {
+    const failedData = await knex.from('urls').count('id').whereNotNull('changeing')
+    return failedData
+
+  }
+  static async getChanges() {
+    const changeLinks = await knex.from('links').select('campaign_id','user_id').where('changeing',null);
+    
+    return changeLinks
   }
 
 

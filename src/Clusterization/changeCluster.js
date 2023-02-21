@@ -1,6 +1,5 @@
 // Modules from this project
 const cluster = require('cluster');
-const CheckInfo = require('../service/checkInfo');
 const Data = require('../models/urls.model');
 const process = require('node:process');
 const Change = require('../models/urls.model')
@@ -18,8 +17,8 @@ let worker = [];
 const step = 1;
 let changedInfo;
 
-// cron.schedule('0 0 0 * * *', () => {
-//   console.log('will run every day at 12:00 AM ')
+cron.schedule('0 0 0 * * *', () => {
+  console.log('will run every day at 12:00 AM ')
 
 
 async function isPrimary() {
@@ -39,10 +38,13 @@ async function isPrimary() {
       worker[i].send(links.slice(start, end));
 
       worker[i].on('message', async (msg) => {
+        console.log(msg.data,'data');
 
         if (msg.data !== undefined) {
           const val = Change.linksChange().then(async (elem)  => {
+            console.log(elem);
             for (let r = 0; r < elem.length; r++) {
+              if(elem[r].title !== msg.data[0] || elem[r].robot_tag !== msg.data[1] || elem[r].favicon !== msg.data[2] || elem[r].status !== msg.data[3]){
               changedInfo = await knex
                 .from('links')
                 .whereIn('id', msg.data[4])
@@ -55,8 +57,16 @@ async function isPrimary() {
                   }
                 })
                 .update({ updated_at: new Date() });
-              break;
+              }
             }
+
+
+            const changeData = await Data.getChanges();
+            for (let c = 0; c < changeData.length; c++) {
+              
+            const insertChanges = await knex.from('changes').insert({campaign_id:changeData[c].campaign_id,user_id:changeData[c].user_id,created_at:new Date()})
+          }
+
           }
           )
         }
@@ -88,7 +98,7 @@ async function isPrimary() {
 
 
               for (let r = 0; r < elem.length; r++) {
-  
+                if((elem[r].title !== msg.data[0] || elem[r].robot_tag !== msg.data[1]) && (elem[r].favicon !== msg.data[2] || elem[r].status !== msg.data[3])){
                 changedInfo = await knex
                   .from('links')
                   .whereIn('id', msg.data[4])
@@ -101,7 +111,7 @@ async function isPrimary() {
                     }
                   })
                   .update({ updated_at: new Date() });
-                break;
+                }
               }
             }
             )
@@ -121,23 +131,8 @@ async function isPrimary() {
 
     });
 
-    const express = require("express")
-    const Api = require('../api/urls.api');
-
-    const app = express()
-
-    const PORT = process.env.PORT || 8989
-    app.use(express.json())
-
-    app.use('/api/v1', Api);
-
-    app.listen(PORT, () => {
-      console.log(`Server is connected on port ${PORT}`);
-    })
-
-
   }
 }
 
-isPrimary()
-// });
+isPrimary();
+});

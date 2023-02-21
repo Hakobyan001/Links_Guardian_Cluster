@@ -57,7 +57,6 @@ class CheckInfo {
     }
 
     for (let i = 0; i < links.length; i++) {
-
       // //Getting External links
       try {
         const domains = links.map((el) => new URL(el).hostname.replace('www.', ''));
@@ -80,6 +79,7 @@ class CheckInfo {
           uniqueArray.push([...new Set(unique[i].filter(str => str.includes(hrefValues[k])))][0]);
         }
         unique2.push(uniqueArray)
+        console.log(unique2);
         //Pushing Information about external links
         for (let x = 0; x < uniqueSorted.length; x++) {
           externalInfo[i].push(JSON.stringify({
@@ -91,7 +91,7 @@ class CheckInfo {
         let a = externalInfo[i];
         let a1 = [...new Set(a)];
         FullInfoAboutExternals = a1.map((el) => JSON.parse(el));
-
+        console.log(FullInfoAboutExternals,"extrd");
       } catch (error) {
         console.log(error);
         if (hrefs[i] !== undefined) {
@@ -115,18 +115,10 @@ class CheckInfo {
 
 
     }
-//     if(rels.length > 0){
-// for(let int in rels){
-//   if(rels[int] === 'nofollow'){
-// nofollow.push(rels[int])
-//   }
-// }
-//   }
-// console.log(arr,"keeeeyword");
-// console.log(rels);
-// console.log(rank,"id");
-console.log(rels);
-  return [rank,rels, arr]
+
+// console.log(rank,'rels');
+// console.log(hrefValues,54);
+  return [rank,rels, arr,hrefValues]
 
   }
 }

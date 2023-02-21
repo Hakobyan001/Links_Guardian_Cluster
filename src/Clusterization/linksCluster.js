@@ -14,12 +14,14 @@ let end = 0;
 let worker = [];
 
 
-
+cron.schedule('0 0 0 * * *', () => {
+  console.log('will run every day at 12:00 AM ')
 
 let informationalResponses;
 
 async function isPrimary() {
   if (cluster.isPrimary) {
+
     const limit = await Change.getNull()
     
     const step = limit;
@@ -36,26 +38,22 @@ async function isPrimary() {
 
       worker[i].on('message', async (msg) => {
 
-
-console.log(msg.data);
         const val = Change.changeing().then(async (elem) => {
-if(msg.data[1].length > 0){
+          if(msg.data[1].length > 0){
+  
           for (let r = 0; r < elem[1].length; r++) {
-
+            if(elem[0][r].external_urls === msg.data[3][r] && (elem[0][r].rel !== msg.data[1][r]|| elem[1][r].keyword !== msg.data[2][r])){
             informationalResponses = await knex
               .from('urls')
-              .whereIn('id', msg.data[0])
+              .where('id','=', msg.data[0][r])
               .update({ changeing: {"oldRel": `"${elem[0][r].rel}"` , "newRel": `"${msg.data[1][r]}"` , "oldKeyword":`"${elem[1][r].keyword}"` , "newKeyword":`"${msg.data[2][r]}"` }})
               .update({updated_at:new Date()})
+              }
            }  
         }
       }
-        )
-
-
-
-
-      });
+    )
+  });
 
       worker[i].on('error', (error) => {
         console.log(error);
@@ -71,24 +69,24 @@ if(msg.data[1].length > 0){
 
         worker.push(cluster.fork());
         const chunk = links.slice(start, end);
-        console.log('INIT start, end => ', start, end);
         worker[numCPUs - 1].send(chunk);
 
         worker[numCPUs - 1].on('message', async (msg) => {
 
           const val = Change.changeing().then(async (elem) => {
             if(msg.data[1].length > 0){
-
-            for (let r = 0; r < elem[1].length; r++) {
-  
-              informationalResponses = await knex
-                .from('urls')
-                .whereIn('id', msg.data[0])
-                .update({ changeing: {"oldRel": `"${elem[0][r].rel}"` , "newRel": `"${msg.data[1][r]}"` , "oldKeyword":`"${elem[1][r].keyword}"` , "newKeyword":`"${msg.data[2][r]}"` }})
-  
-            }
-          }
-        }
+              
+                      for (let r = 0; r < elem[1].length; r++) {
+            if(elem[0][r].external_urls === msg.data[3][r] && (elem[0][r].rel !== msg.data[1][r] || elem[1][r].keyword !== msg.data[2][r])){
+                        informationalResponses = await knex
+                          .from('urls')
+                          .where('id','=', msg.data[0][r])
+                          .update({ changeing: {"oldRel": `"${elem[0][r].rel}"` , "newRel": `"${msg.data[1][r]}"` , "oldKeyword":`"${elem[1][r].keyword}"` , "newKeyword":`"${msg.data[2][r]}"` }})
+                          .update({updated_at:new Date()})
+                         }
+                       }  
+                    }
+                }
           )
 
         });
@@ -103,26 +101,10 @@ if(msg.data[1].length > 0){
     process.on('message', async (msg) => {
       process.send({ data: await CheckInfo.checkInfo(msg) });
       process.kill(process.pid);
-
     });
-
-    const express = require("express")
-    const Api = require('../api/urls.api');
-
-    const app = express()
-
-    const PORT = process.env.PORT || 8989
-    app.use(express.json())
-
-    app.use('/api/v1', Api);
-
-    app.listen(PORT, () => {
-      console.log(`Server is connected on port ${PORT}`);
-    })
-
   }
-  
-  
 }
 
 isPrimary()
+
+});

@@ -1,4 +1,4 @@
-const fetch = require('node-fetch');
+// const fetch = require('node-fetch');
 const robotsRegex = /<meta[^>]*?name=["']robots["'][^>]*?>/i;
 // const Insert = require('../Clusterization/cluster');
 // const { inserting} = require('../Clusterization/cluster')
@@ -93,53 +93,93 @@ class UrlService {
             robot_tag: robotExternals[x] === 'null' || robotExternals[x] === undefined || !robotExternals[x].includes('noindex') ? 'indexable' : 'noindexable',
           })
         }
-
-        for(let int in info){
-          if(info[int].robot_tag === 'noindexable'){
-            urlAndRobot.urlRobot.push(info[int].url);
-            
-          }if(info[int].status !== 200){
-             urlAndStatus.urlStatus.push(info[int].url);
-             urlAndStatus.status.push(info[int].status);
-          }
-        }
       }
-      return [urlAndStatus,urlAndRobot]
+      // console.log(info,"info");
+      return info
       // const exportData = await inserting([urlAndStatus,urlAndRobot])
     }
+
+    static async checkInfoFromMain(furls) {
+      const titleRegex = /<title[^>]*>([\s\S]*?)<\/title>/;
+      const robotsRegex = /<meta[^>]*?name=["']robots["'][^>]*?>/i;
+      const faviconRegex = /<link[^>]*(?:rel\s*=\s*['"](?:shortcut icon|icon)['"][^>]*)\s*href\s*=\s*['"]([^'"]*)['"][^>]*>/i;
+      const mainStatuses = [];
+      const robotOfMain = [];
+      const title = [];
+      const favicons = [];
+      const mainInfo = [];
+      const htmlOfMain = []
+      let counter = Math.floor(Math.random() * 999999999999999);
+      const domain = furls.map((el) => el + `?v=${counter}`)
+
+
+     try{
+  var domains = furls.map((el) => new URL(el).hostname.replace('www.', ''));
+  const dataMain = await Promise.all(domain.map((elem) => fetch(elem)));
+  for (let elem of dataMain) {
+      //Receive statuses of Links
+      if(elem.status === 404) {
+          const vil = await Promise.all(furls.map((elem) => fetch(elem)))
+          for (let elem of vil) {
+            let text = await elem.text();
+            htmlOfMain.push(text);
+            mainStatuses.push(elem.status);
+          }
+        }else {
+          let mainText = await elem.text();
+          htmlOfMain.push(mainText)
+          mainStatuses.push(elem.status);
+        }
+    }}catch (err) {
+      if(err instanceof TypeError || err.message === 'terminated') {
+        let counter = Math.floor(Math.random() * 999999999999999);
+        const links = furls.map((el) => el + `?v=${counter}`)
+        var dataMain = await Promise.all(links.map((elem) => 
+        axios.get(`${elem}`).then((response)=>{
+            return response
+          })));
+  
+        for (let elem of dataMain) {
+          //Receive statuses of Links
+            let mainText = elem.data;
+            htmlOfMain.push(mainText);
+            mainStatuses.push(elem.status);
+        }
+      }
+      else{
+        return "Problem"
+      }
+    }
+    try{
+  for (let i = 0; i < domain.length; i++) {
+      title.push(htmlOfMain[i].match(titleRegex));
+      robotOfMain.push(String(htmlOfMain[i].match(robotsRegex)));
+      favicons.push(htmlOfMain[i].match(faviconRegex));
+      //Creating object for All Information of External link
+      mainInfo.push(
+          {
+              url: furls[i],
+              redirected_chains: [],
+              robot_tag: robotOfMain[i] === undefined || !robotOfMain[i].includes('noindex') ||  robotOfMain[i] === null ? robotOfMain[i] = 'indexable' : robotOfMain[i] = 'noindexable',
+              title: title[i] === null ? title[i] : title[i][1].replace(/&#8211/g, '-').replace(/&#8217/g, "'").replace(/;/g, "")  ,
+              favicon: (!favicons[i] ||  favicons[i][1].includes(',')) ? null : (favicons[i][1].includes('https://') ? favicons[i][1] : `https://${domains[i]}` + '/' + favicons[i][1]),
+              status: mainStatuses[i]
+            }
+      )
+  }
+  }catch (error){
+    for (let i = 0; i < domain.length; i++) {
+      mainInfo.push({
+        url: furls[i],
+        status: error.cause.code === 'ENOTFOUND' ? 404 : furls[i].includes(error.cause.host) ? 503 : 200,
+      })
+    }
+  }   
+  const inform = mainInfo.flat(3)
+  return inform
+  }
 }
 
+
+
 module.exports = UrlService;
-
-
-// static async checkInfoFromMain(domain) {
-  //   const mainStatus = [];
-  //   const robotOfMain = [];
-  //   const favicons = [];
-  //   const mainInfo = [];
-  //   const htmlOfMain = [];
-  //   const dataMain = await Promise.all(domain.map((elem) => fetch(elem)));
-  //   for (let elem of dataMain) {
-  //     //Receive text of HTML
-  //     let exText = await elem.text();
-  //     htmlOfMain.push(exText)
-  //     //Receive statuses of Links
-  //     mainStatus.push(elem.status);
-  //   }
-
-  //   for (let i = 0; i < domain.length; i++) {
-  //     robotOfMain.push(String(htmlOfMain[i].match(robotsRegex)));
-  //     favicons.push(htmlOfMain[i].match(faviconRegex));
-  //     //Creating object for All Information of External link
-  //     console.log(robotOfMain, 87987);
-  //     mainInfo.push(
-  //       {
-  //         url: domain[i],
-  //         robot_tag: robotOfMain[i] === undefined || !robotOfMain[i].includes('noindex') || robotOfMain[i] === null ? robotOfMain[i] = 'indexable' : robotOfMain[i] = 'noindexable',
-  //         status: mainStatus[i],
-  //         favicon: !favicons[i] ? "null" : (favicons[i][1].includes('https://') ? favicons[i][1] : domain[i] + '/' + favicons[i][1]),
-  //       }
-  //     )
-  //   }
-  //   return mainInfo
-  // }

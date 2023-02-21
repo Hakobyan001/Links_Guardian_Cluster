@@ -98,14 +98,14 @@ class ChangeMain {
         let a = externalInfo[i];
         let a1 = [...new Set(a)];
         FullInfoExternals = a1.map((el) => JSON.parse(el));
-
+        console.log(domains[i],"aaa");
         // Creating object for All Information of Main link
         info.push(
           {
             link: links[i],
             title: title[i] === null ? title[i] : title[i][1],
             robot_tag: robots[i] === undefined || !robots[i].includes('noindex') || robots[i] === "null" ? robot.indexable : robot.noindexable,
-            favicon: !favicons[i] ? "null" : (favicons[i][1].includes('https://') ? favicons[i][1] : links[i] + '/' + favicons[i][1]),
+            favicon: (!favicons[i] || favicons[i][1].includes(','))  ? null : (favicons[i][1].includes('https://') ? favicons[i][1] : `https://${domains[i]}` + '/' + favicons[i][1]),
             status: mainStatuses[i],
           }
         )
@@ -128,6 +128,7 @@ class ChangeMain {
           return "Please input the correct link"
         }
       }
+      console.log(info,'info');
       return [info[i].title,info[i].robot_tag,info[i].favicon,info[i].status ,idOfMain]
     }
 

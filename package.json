@@ -1,5 +1,5 @@
 {
-  "name": "Links GD",
+  "name": "linksgd",
   "version": "1.0.0",
   "description": "",
   "main": "server.js",
@@ -8,6 +8,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "watch": "nodemon  src/Clusterization/cluster.js ",
     "start": "nodemon server.js",
+    "migrate": "node migrations/1_create_tables.js",
+    "migrate-down": "node migrations/1_drop_tables.js",
     "dev": "nodemon src/Clusterization/linksCluster.js",
     "change": "nodemon src/Clusterization/changeCluster.js "
   },
