@@ -8,14 +8,17 @@ const cron = require('node-cron');
 
 
 const { option } = require("../../connectSQL");
+const { getLinksForChange } = require('../models/urls.model');
 const knex = require('knex')(option);
 const numCPUs = require('os').cpus().length;
-console.log(numCPUs);
 let start = 0;
 let end = 0;
 let worker = [];
 const step = 1;
 let changedInfo;
+let changedInfoExternals;
+
+
 
 cron.schedule('0 0 0 * * *', () => {
   console.log('will run every day at 12:00 AM ')
@@ -24,11 +27,11 @@ cron.schedule('0 0 0 * * *', () => {
 async function isPrimary() {
   if (cluster.isPrimary) {
 
-    const limitOfLength = await Data.linksChange()
-    const limit = limitOfLength.length
 
 
-    const links = await Data.linksChange()
+
+    const links = await Data.getLinksForChange()
+    const limit = links.length
 
     for (let i = 0; i < numCPUs; i += 1) {
       worker.push(cluster.fork());
@@ -38,37 +41,32 @@ async function isPrimary() {
       worker[i].send(links.slice(start, end));
 
       worker[i].on('message', async (msg) => {
-        console.log(msg.data,'data');
 
         if (msg.data !== undefined) {
-          const val = Change.linksChange().then(async (elem)  => {
-            console.log(elem);
-            for (let r = 0; r < elem.length; r++) {
-              if(elem[r].title !== msg.data[0] || elem[r].robot_tag !== msg.data[1] || elem[r].favicon !== msg.data[2] || elem[r].status !== msg.data[3]){
-              changedInfo = await knex
-                .from('links')
-                .whereIn('id', msg.data[4])
-                .update({
-                  changeing: {
-                    "oldTitle": `"${elem[r].title}"`, "newTitle": `"${msg.data[0]}"`
-                    , "oldRobot": `"${elem[r].robot_tag}"`, "newRobot": `"${msg.data[1]}"`
-                    , "oldFavicon": `"${elem[r].favicon}"`, "newFavicon": `"${msg.data[2]}"`
-                    , "oldStatus": `"${elem[r].status}"`, "newStatus": `"${msg.data[3]}"`
-                  }
-                })
-                .update({ updated_at: new Date() });
-              }
-            }
+
+          changedInfo = await knex
+          .from('links')
+          .where('updated_at', '<', knex.raw('NOW() - INTERVAL \'1 DAY\''))
+          .orWhere('created_at', '<', knex.raw('NOW() - INTERVAL \'1 DAY\''))
+              .andWhere('id', '=', msg.data[4][0])
+              .update({ changeing: [msg.data[0],msg.data[1],msg.data[2],msg.data[3] ]})
+              .update({ updated_at: new Date() });
+
+              for(let temp in msg.data[5][0]){
+
+                changedInfoExternals = await knex
+                .from('urls')
+                .where('updated_at', '<', knex.raw('NOW() - INTERVAL \'1 DAY\''))
+                .orWhere('created_at', '<', knex.raw('NOW() - INTERVAL \'1 DAY\''))
+                    .andWhere('external_urls', '=', JSON.parse(msg.data[5][0][temp]).external_urls)
+                    .update({ changeing: [JSON.parse(msg.data[5][0][temp]).rel,JSON.parse(msg.data[5][0][temp]).keyword]})
+                    .update({ updated_at: new Date() });
+                }
 
 
-            const changeData = await Data.getChanges();
-            for (let c = 0; c < changeData.length; c++) {
+
+
               
-            const insertChanges = await knex.from('changes').insert({campaign_id:changeData[c].campaign_id,user_id:changeData[c].user_id,created_at:new Date()})
-          }
-
-          }
-          )
         }
 
       });
@@ -85,7 +83,6 @@ async function isPrimary() {
 
       if (end <= limit) {
         worker = worker.filter((w) => w.id !== currWorker.id);
-
         worker.push(cluster.fork());
         const chunk = links.slice(start, end);
         console.log('INIT start, end => ', start, end);
@@ -94,28 +91,27 @@ async function isPrimary() {
         worker[numCPUs - 1].on('message', async (msg) => {
 
           if (msg.data !== undefined) {
-            const val = Change.linksChange().then(async (elem) => {
+            changedInfo = await knex
+            .from('links')
+            .where('updated_at', '<', knex.raw('NOW() - INTERVAL \'1 DAY\''))
+            .orWhere('created_at', '<', knex.raw('NOW() - INTERVAL \'1 DAY\''))
+                .andWhere('id', '=', msg.data[4][0])
+                .update({ changeing: [msg.data[0],msg.data[1],msg.data[2],msg.data[3] ]})
+                .update({ updated_at: new Date() });
 
 
-              for (let r = 0; r < elem.length; r++) {
-                if((elem[r].title !== msg.data[0] || elem[r].robot_tag !== msg.data[1]) && (elem[r].favicon !== msg.data[2] || elem[r].status !== msg.data[3])){
-                changedInfo = await knex
-                  .from('links')
-                  .whereIn('id', msg.data[4])
-                  .update({
-                    changeing: {
-                      "oldTitle": `"${elem[r].title}"`, "newTitle": `"${msg.data[0]}"`
-                      , "oldRobot": `"${elem[r].robot_tag}"`, "newRobot": `"${msg.data[1]}"`
-                      , "oldFavicon": `"${elem[r].favicon}"`, "newFavicon": `"${msg.data[2]}"`
-                      , "oldStatus": `"${elem[r].status}"`, "newStatus": `"${msg.data[3]}"`
-                    }
-                  })
-                  .update({ updated_at: new Date() });
-                }
-              }
-            }
-            )
+                for(let temp in msg.data[5][0]){
+
+                  changedInfoExternals = await knex
+                  .from('urls')
+                  .where('updated_at', '<', knex.raw('NOW() - INTERVAL \'1 DAY\''))
+                  .orWhere('created_at', '<', knex.raw('NOW() - INTERVAL \'1 DAY\''))
+                      .andWhere('external_urls', '=', JSON.parse(msg.data[5][0][temp]).external_urls)
+                      .update({ changeing: [JSON.parse(msg.data[5][0][temp]).rel,JSON.parse(msg.data[5][0][temp]).keyword]})
+                      .update({ updated_at: new Date() });
+                  }
           }
+
         });
 
 
@@ -125,6 +121,7 @@ async function isPrimary() {
       }
     });
   } else {
+
     process.on('message', async (msg) => {
       process.send({ data: await ChangeMain.changeMain(msg) });
       process.kill(process.pid);

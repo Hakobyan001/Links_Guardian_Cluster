@@ -1,5 +1,6 @@
 const express = require("express")
 const Api = require('./src/api/urls.api');
+const ErrorHandlerMiddlware = require('./src/validation/error-handler.middleware');
 
 const app = express()
 
@@ -8,6 +9,7 @@ const PORT = process.env.PORT || 8080
 app.use(express.json())
 
 app.use('/api/v1', Api);
+app.use(ErrorHandlerMiddlware.init);
 
 
 

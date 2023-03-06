@@ -76,7 +76,6 @@ class LinkService {
       // //Getting External links
       var domains = furls.map((el) => new URL(el).hostname.replace('www.', ''));
       externalInfo.push([]);
-      // console.log(htmlOfLinks[i]);
       aTags.push(htmlOfLinks[i].match(aRegex));
       aTagOfExternals.push([...new Set(aTags[i])].filter((el) => !el.includes(domains[i]) && el.includes('href="http') && !el.includes('@') && !el.includes('.js') && !el.includes('.css')))
       sorted.push(aTagOfExternals[i].map((el) => el.split(' ').sort().join(' ')));

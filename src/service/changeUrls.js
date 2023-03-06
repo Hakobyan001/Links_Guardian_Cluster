@@ -1,17 +1,12 @@
-const robotsRegex = /<meta[^>]*?name=["']robots["'][^>]*?>/i;
+// enum type
+const robot = require('../enum/robot.enum');
+const rel = require('../enum/rel.enum');
 
-
-class UrlService {
-  static async checkUrls(domain) {
-
-    let alfa = [];
-    let unexts = [];
-    let ids = [];
-    for(let k = 0; k < domain.length; k++) {
-      alfa.push(domain[k].external_urls);
-      ids.push(domain[k].id);
-    }
-    unexts = alfa;
+const fetch = require("node-fetch");
+class ChangeUrls {
+  static async changeUrls(domain) {   
+    const robotsRegex = /<meta[^>]*?name=["']robots["'][^>]*?>/i;
+    let unexts = domain;
     const externalStatus = []
     const robotExternals = [];
     const info = [];
@@ -19,8 +14,6 @@ class UrlService {
     const information = [];
     const urlAndRobot = {urlRobot:[]}
     const urlAndStatus = { urlStatus:[],status:[]}
-    const arrFromStatus= []
-    const arrFromRobot = []
 
     if (unexts.length > 0) {
       let success;
@@ -88,111 +81,16 @@ class UrlService {
         for (let x = 0; x < info1.length; x++) {      
           robotExternals.push(String(info1[x].text.match(robotsRegex)));
           info.push({
-            id: ids[x],
             url: info1[x].url,
             status: info1[x].status || 508,
             robot_tag: robotExternals[x] === 'null' || robotExternals[x] === undefined || !robotExternals[x].includes('noindex') ? 'indexable' : 'noindexable',
           })
-
-          arrFromStatus.push(info[x].status);
-          arrFromRobot.push(info[x].robot_tag)
         }
       }
-
-      // console.log(info,"info>>>>>>>>>>>>>>>>>>>>>>>>>>");
+      // console.log(info,"info");
       return info
       // const exportData = await inserting([urlAndStatus,urlAndRobot])
     }
-
-    static async anotherChecking(domain) {
-      let alfa = [];
-      let unexts = [];
-      for(let k = 0; k<domain.length; k++) {
-        alfa.push(domain[k].external_urls);
-      }
-      unexts = alfa;
-      const externalStatus = []
-      const robotExternals = [];
-      const info = [];
-      const info1 = [];
-      const information = [];
-      const urlAndRobot = {urlRobot:[]}
-      const urlAndStatus = { urlStatus:[],status:[]}
-  
-      if (unexts.length > 0) {
-        let success;
-        const fetchData = async link => {
-          try {
-            const response = await fetch(link, { redirect: "manual" });
-            const data = response;
-            return { status: "fulfilled", value: data };
-          } catch (error) {
-            return {
-              status: "rejected", value: {
-                status: 503,
-                aborted: false,
-              },
-            }
-          }
-        }
-        const dataExternal = await Promise.allSettled(unexts.map(fetchData))
-        .then(results => {
-          results.forEach((result, index) => {
-            if (String(result.value.value.cause).includes('Error: Client network') && String(result.value.value.code).includes('UND_ERR_SOCKET')) {
-              info1.push({
-                url: unexts[index],
-                text: 'null',
-                status: 404
-              })
-              externalStatus.push(503)
-            } else if (result.value.status === "rejected") {
-              const texts = result.value.value;
-              information.push({
-                url: unexts[index],
-                text: texts
-              })
-              info1.push({
-                url: unexts[index],
-                text: 'null',
-                status: 503
-              })
-            } else if (result.value.status === "fulfilled") {
-              const texts = result.value.value;
-              success = result.value.value.status
-              externalStatus.push(success);
-              information.push({
-                url: unexts[index],
-                text: texts
-              })
-            }
-          });
-        })
-        .catch((err) => {
-          console.log(err);
-          externalStatus.push(404);
-        })
-  
-  
-          await Promise.allSettled(information.map(async (elem,index) => {
-            info1.push({
-              url: elem.url,
-              text: await elem.text.text(),
-              status: information[index].text.status
-            })
-          }));
-  
-          for (let x = 0; x < info1.length; x++) {      
-            robotExternals.push(String(info1[x].text.match(robotsRegex)));
-            info.push({
-              url: info1[x].url,
-              status: info1[x].status || 508,
-              robot_tag: robotExternals[x] === 'null' || robotExternals[x] === undefined || !robotExternals[x].includes('noindex') ? 'indexable' : 'noindexable',
-            })
-          }
-        }
-        return info
-        // const exportData = await inserting([urlAndStatus,urlAndRobot])
-      }
 
     static async checkInfoFromMain(furls) {
       const titleRegex = /<title[^>]*>([\s\S]*?)<\/title>/;
@@ -272,9 +170,11 @@ class UrlService {
   }   
   const inform = mainInfo.flat(3)
   return inform
+
+
+
   }
 }
 
 
-
-module.exports = UrlService;
+module.exports = ChangeUrls;

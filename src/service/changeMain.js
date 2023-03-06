@@ -1,10 +1,14 @@
 // enum type
 const robot = require('../enum/robot.enum');
 const rel = require('../enum/rel.enum');
-
+const Data = require('../models/urls.model');
 const fetch = require("node-fetch");
+
 class ChangeMain {
   static async changeMain(domain) {
+
+    // console.log(domain, 'domain');
+
 
     const aRegex = /<a[^>]*href=['"]([^'"]*)['"][^>]*>([\s\S]*?)<\/a>/g;
     const titleRegex = /<title[^>]*>([\s\S]*?)<\/title>/;
@@ -30,18 +34,24 @@ class ChangeMain {
     let FullInfoExternals = [];
     let FullInfoAboutExternals = [];
     let ExternalsLinks = [];
-    const htmlOfExternals = [];
-    const externalStatuses = [];
-    const robotsOfExternals = [];
-    const idOfMain = []
-    const links = []
+    let rels = [];
+    const idOfMain = [];
+    const links = [];
+    let ids = [];
+    const g = [];
+
 
     if(domain.length>0){
         for(let link = 0 ;link<domain.length;link++){
             links.push(domain[link].urls);
+         ids.push(await Data.mainLink(domain[link].urls));
       idOfMain.push(domain[link].id)
         }
     }
+
+
+    // console.log(links, 'links');
+
     try {
       const dataMain = await Promise.all(links.map((elem) => fetch(elem)));
 
@@ -59,9 +69,11 @@ class ChangeMain {
 
     for (let i = 0; i < links.length; i++) {
 
+      // console.log(links, 'links');
       // //Getting External links
       try {
         const domains = links.map((el) => new URL(el).hostname.replace('www.', ''));
+
         externalInfo.push([]);
         aTags.push(htmlOfLinks[i].match(aRegex));
         aTagOfExternals.push([...new Set(aTags[i])].filter((el) => !el.includes(domains[i]) && el.includes('href="http') && !el.includes('@') && !el.includes('.js') && !el.includes('.css') && !el.includes('.html')))
@@ -78,6 +90,9 @@ class ChangeMain {
         let count = Math.floor(Math.random() * 999999999999999)
         ExternalsLinks = hrefValues.map((el) => el + `?v=${count}`); 
 
+
+        // console.log(ExternalsLinks, 'exxxxxxx');
+
         for (let k = 0; k < hrefValues.length; k++) {
           uniqueArray.push([...new Set(unique[i].filter(str => str.includes(hrefValues[k])))][0]);
         }
@@ -88,17 +103,26 @@ class ChangeMain {
 
           //Pushing Information about external links
         for (let x = 0; x < ExternalsLinks.length; x++) {
+          uniqueArray[x].includes('nofollow') ?  rels.push("nofollow") : rels.push("dofollow"),
+
             externalInfo[i].push(JSON.stringify({
-              url: ExternalsLinks[x],
-              rel: uniqueArray[x].includes('nofollow') ?  rel.nofollow : rel.dofollow,
+              id: ids[i][x]?.id,
+              rel: rels[x],
               keyword: aTagOfExternals[i][x].includes(replaced[i][x]) && replaced[i][x] !== '' && !replaced[i][x].includes('/') ? replaced[i][x] : "null",
+              external_urls: hrefValues[x],
+
             }))
         }
+
+
 
         let a = externalInfo[i];
         let a1 = [...new Set(a)];
         FullInfoExternals = a1.map((el) => JSON.parse(el));
-        console.log(domains[i],"aaa");
+
+
+        g.push(externalInfo[i]);
+
         // Creating object for All Information of Main link
         info.push(
           {
@@ -117,6 +141,8 @@ class ChangeMain {
           let b1 = [...new Set(b)];
           FullInfoAboutExternals = b1.map((el) => JSON.parse(el));
 
+          g.push(FullInfoAboutExternals);
+
           info.push(
             {
               link: links[i],
@@ -128,11 +154,13 @@ class ChangeMain {
           return "Please input the correct link"
         }
       }
-      console.log(info,'info');
-      return [info[i].title,info[i].robot_tag,info[i].favicon,info[i].status ,idOfMain]
+
+
+
+      return [info[i].title,info[i].robot_tag,info[i].favicon,info[i].status ,idOfMain,g];
     }
 
-
+ 
 
   }
 }

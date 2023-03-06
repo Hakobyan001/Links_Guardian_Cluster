@@ -14,11 +14,12 @@ function up(pg) {
         table.string('title');
         table.string('favicon');
         table.integer('status');
-        table.json('changeing');
+        table.specificType('changeing', 'text[]');
         table.integer('campaign_id');
         table.integer('user_id');
         table.dateTime('created_at');
         table.dateTime('updated_at');
+        table.enum('change',['active', 'inactive']).default('active')
       })
       .createTable('urls', (table) => {
         table.increments('id').primary();
@@ -27,13 +28,17 @@ function up(pg) {
         table.string('keyword');
         table.enum('robot_tag', ['indexable', 'noindexable']);
         table.integer('status');
-        table.json('changeing');
+        table.specificType('changeing', 'text[]');
+        table.specificType('changeing_status', 'text[]');
         table.integer('campaign_id');
         table.integer('user_id');
         table.string('main_link');
         table.integer('links_id');
         table.dateTime('created_at');
         table.dateTime('updated_at');
+        table.dateTime('updated_at_for_status');
+
+        table.enum('change',['active', 'inactive']).default('active') 
       })
       .createTable('changes', (table) => {
         table.integer('campaign_id');
@@ -50,7 +55,7 @@ async function init() {
         await up(pg);
         console.log('Successfully created all tables ... ');
     } catch (error) {
-        console.log("Error!!");
+        console.log(error);
     }
 }
 
