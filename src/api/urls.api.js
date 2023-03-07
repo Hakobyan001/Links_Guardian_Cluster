@@ -12,13 +12,12 @@ router.get('/urls/crawled/all',getCrawled);
 router.get('/urls/crawled',getCrawledById);
 router.get('/urls/crawled/count/links',getCrawledLinksCountById);
 router.get('/urls/getFailed', getFailed);
-router.get('/urls/changes', getChangesById);
+router.get('/urls/changes', getChangesById);///----
 router.post('/urls/freeRequest', LinksValidation.validateRequest, fullOnlyStatus);
-router.post('/urls/change', addChange);
+router.post('/urls/change', addChange);// validation
 router.get('/urls/getChangeData',getChangeData);
-router.post('/urls/getLinks',getLinks );
-router.post('/urls/getFailedLinks',getFailedLinks);
+router.post('/urls/getLinks',getLinks );//validate
+router.post('/urls/getFailedLinks',getFailedLinks);//---validate
 
-// router.get('/urls/')
 
 module.exports = router;

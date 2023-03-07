@@ -16,7 +16,6 @@ class UrlsController {
     try {
       const { campaign_id } = req.body
       const urls = await UrlsModel.addChange(campaign_id);
-      console.log(campaign_id,"campaign_id");
       res.send('success')
     } catch (error) {
       next(error);
@@ -26,30 +25,28 @@ class UrlsController {
   static async test(req, res, next) {
     try {
       const val = req.body;
-      let data = [];
       const url = Object.values(val);
-      let info2;
-      let domains = [];
-      for (let i = 0; i < url.length; i++) {
-        domains.push(url[i])
-        info2 = await CheckerLinks.linkTest(url[i]);
-        data.push(info2);
-      }
+      const results = await Promise.allSettled(url.map((url) => CheckerLinks.linkTest(url)));
       const worker = child_process.fork('src/Clusterization/cluster.js')
       worker.on('message', async function (msg) {
         let array = msg.flat(2);
         var extrs;
-        for (let i = 0; i < url.length; i++) {
-          extrs = data[i][0].externalInfo ? data[i][0].externalInfo : data[i];
-          let arr3 = extrs = extrs.map(obj1 => {
-            const matchingObj2 = array.find(obj2 => obj1.url === obj2.url || obj1.url + '/' === obj2.url || obj1.url === obj2.url + '/');
-            return { ...obj1, ...matchingObj2 };
-          });
-            data[i][0].link = domains[i]
-            data[i][0].externalInfo = arr3
-        }
+        const data = results.map((result, i) => {
+          if (result.status === 'fulfilled') {
+            extrs = result.value[0].externalInfo ? result.value[0].externalInfo : result.value;
+            let arr3 = extrs = extrs.map(obj1 => {
+              const matchingObj2 = array.find(obj2 => obj1.url === obj2.url || obj1.url + '/' === obj2.url || obj1.url === obj2.url + '/');
+              return { ...obj1, ...matchingObj2 };
+            });
+            result.value[0].link = url[i]
+            result.value[0].externalInfo = arr3
+            return result.value;
+          } else {
+            console.log(`Error fetching URL ${url[i]}`);
+          }
+        });
         res.send(data)
-      })
+      });
     } catch (error) {
       next(error);
     }
@@ -142,8 +139,8 @@ class UrlsController {
       if (dataOfExternals[0][0].error === "We don't have access for information" || dataOfExternals[0][0].status === 404) {
         res.send(500, dataOfExternals)
       } else {
-        // res.send(dataOfExternals)
-      SuccessHandlerUtil.handleGet(res, next, { success: true });
+        res.send(dataOfExternals)
+      // SuccessHandlerUtil.handleGet(res, next, { success: true });
 
       }
       dataOfExternals = []

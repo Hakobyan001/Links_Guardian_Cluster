@@ -99,9 +99,7 @@ class UrlService {
         }
       }
 
-      // console.log(info,"info>>>>>>>>>>>>>>>>>>>>>>>>>>");
       return info
-      // const exportData = await inserting([urlAndStatus,urlAndRobot])
     }
 
     static async anotherChecking(domain) {

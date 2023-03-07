@@ -69,7 +69,6 @@ async function isPrimary() {
         worker[numCPUs - 1].on('message', async (msg) => {
           if(msg.data[0]){ 
             array.push(msg.data);
-            console.log(array.length);
             if(array.length*step  >= limit) {
               process.send(array);
               
