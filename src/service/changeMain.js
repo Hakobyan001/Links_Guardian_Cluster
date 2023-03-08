@@ -7,9 +7,6 @@ const fetch = require("node-fetch");
 class ChangeMain {
   static async changeMain(domain) {
 
-    // console.log(domain, 'domain');
-
-
     const aRegex = /<a[^>]*href=['"]([^'"]*)['"][^>]*>([\s\S]*?)<\/a>/g;
     const titleRegex = /<title[^>]*>([\s\S]*?)<\/title>/;
     const robotsRegex = /<meta[^>]*?name=["']robots["'][^>]*?>/i;
@@ -50,7 +47,6 @@ class ChangeMain {
     }
 
 
-    // console.log(links, 'links');
 
     try {
       const dataMain = await Promise.all(links.map((elem) => fetch(elem)));

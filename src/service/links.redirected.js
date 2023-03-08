@@ -1,38 +1,3 @@
-// class RedirectedLinks {
-//     static async linksTest(url, settings) {
-//         global.links = [];
-//         return await RedirectedLinks.test(url, settings);
-//     }
-//     static async test(url, settings) {
-//         try {
-//             await fetch(url, settings).then((res) => {
-// // 
-//                 if (res.headers.get('Location') !== url && (res.status === 301 || res.status === 302)) {
-//                     links.push({
-//                         url,
-//                         status: res.status,
-//                     });
-// // 
-//                     return RedirectedLinks.test(res.headers.get('Location'), settings);
-//                 } else {
-//                     links.push({
-//                         url,
-//                         status: res.status,
-//                     });
-//                 }
-//             });
-//         } catch (error){
-//             console.log(error);
-//             return ({
-//                 url,
-//                 error: "This is invalid url"
-//             });
-//         }
-//         return links
-//     }
-// }
-// // 
-// module.exports = RedirectedLinks
 const fetch = require('node-fetch');
 
 class RedirectedLinks {

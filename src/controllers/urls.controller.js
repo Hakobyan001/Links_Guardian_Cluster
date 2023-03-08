@@ -8,15 +8,21 @@ const insertTable = require('../inserttable/inserttable');
 const OnlyStatusChecker = require('../service/mainLinks.redirect');
 const { LogError } = require('concurrently');
 const SuccessHandlerUtil = require('../utils/success-handler.util.js');
+const { userInfo } = require('os');
 
 
 class UrlsController {
 
   static async addChange(req, res, next) {
     try {
-      const { campaign_id } = req.body
+      const campaign_id = req.query.campaign_id;
       const urls = await UrlsModel.addChange(campaign_id);
-      res.send('success')
+
+      if (urls[0] == 0 && urls[1] == 0) {
+        res.send({ success: false })
+      } else {
+        res.send({ success: true })
+      }
     } catch (error) {
       next(error);
     }
@@ -25,28 +31,31 @@ class UrlsController {
   static async test(req, res, next) {
     try {
       const val = req.body;
+      let data = [];
       const url = Object.values(val);
-      const results = await Promise.allSettled(url.map((url) => CheckerLinks.linkTest(url)));
+      let info2;
+      let domains = [];
+      for (let i = 0; i < url.length; i++) {
+        domains.push(url[i])
+        info2 = await CheckerLinks.linkTest(url[i]);
+        data.push(info2)
+      }
       const worker = child_process.fork('src/Clusterization/cluster.js')
       worker.on('message', async function (msg) {
         let array = msg.flat(2);
-        var extrs;
-        const data = results.map((result, i) => {
-          if (result.status === 'fulfilled') {
-            extrs = result.value[0].externalInfo ? result.value[0].externalInfo : result.value;
-            let arr3 = extrs = extrs.map(obj1 => {
-              const matchingObj2 = array.find(obj2 => obj1.url === obj2.url || obj1.url + '/' === obj2.url || obj1.url === obj2.url + '/');
-              return { ...obj1, ...matchingObj2 };
-            });
-            result.value[0].link = url[i]
-            result.value[0].externalInfo = arr3
-            return result.value;
-          } else {
-            console.log(`Error fetching URL ${url[i]}`);
-          }
-        });
-        res.send(data)
-      });
+        for (let i = 0; i < url.length; i++) {
+          var extrs = data[i][0].externalInfo;
+          let arr3 = extrs = extrs.map(obj1 => {
+            const matchingObj2 = array.find(obj2 => obj1.url === obj2.url || obj1.url + '/' === obj2.url || obj1.url === obj2.url + '/');
+            return { ...obj1, ...matchingObj2 };
+          });
+          data[i][0].link = domains[i];
+          data[i][0].externalInfo = arr3
+        }
+        // res.send(data)
+        SuccessHandlerUtil.handleAdd(res, next, { success: true });
+        data = null
+      })
     } catch (error) {
       next(error);
     }
@@ -56,8 +65,11 @@ class UrlsController {
     try {
       const val = req.body;
       const url = await insertTable.insertTable(val);
-      // res.send({ success: true })
+      if(url == undefined) {
+      SuccessHandlerUtil.handleAdd(res, next, { success: false });
+      }else {
       SuccessHandlerUtil.handleAdd(res, next, { success: true });
+      }
     } catch (error) {
       next(error);
     }
@@ -67,8 +79,11 @@ class UrlsController {
     try {
       const { id } = req.body;
       const url = await UrlsModel.deleteUrls(id);
-      // res.send(url)
-      SuccessHandlerUtil.handleDelete(res, next, { success: true });
+      if (url[0] == 0 && url[1] == 0) {
+        SuccessHandlerUtil.handleDelete(res, next, { success: false });
+      } else {
+        SuccessHandlerUtil.handleDelete(res, next, { success: true });
+      }
     } catch (error) {
       next(error);
     }
@@ -76,7 +91,7 @@ class UrlsController {
   static async getLiveUrls(req, res, next) {
     try {
       const url = await UrlsModel.getLiveUrls();
-      res.send(url)
+      res.send({countOfLiveUrls: url[0], countOfLiveLinks: url[1]})
     } catch (error) {
       next(error);
     }
@@ -139,8 +154,7 @@ class UrlsController {
       if (dataOfExternals[0][0].error === "We don't have access for information" || dataOfExternals[0][0].status === 404) {
         res.send(500, dataOfExternals)
       } else {
-        res.send(dataOfExternals)
-      // SuccessHandlerUtil.handleGet(res, next, { success: true });
+        SuccessHandlerUtil.handleGet(res, next, dataOfExternals);
 
       }
       dataOfExternals = []
@@ -172,16 +186,15 @@ class UrlsController {
   }
   static async getLinks(req, res, next) {
     try {
-      const userId = req.query.userId;
       const campaignId = req.query.campaignId;
-      const changesData = await UrlsModel.getLinksAndUrls(userId,campaignId);
+      const changesData = await UrlsModel.getLinksAndUrls(campaignId);
       res.send(changesData)
     } catch (error) {
       next(error);
     }
   }
 
-  
+
   static async getFailedLinks(req, res, next) {
     try {
       const campaignId = req.query.campaignId;

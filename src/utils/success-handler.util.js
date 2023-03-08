@@ -59,7 +59,6 @@ module.exports = class SuccessHandlerUtil {
    * @description Handle `get` type requests.
    */
     static handleGet(response, next, result) {
-        // console.log(result, "resssssssssssssssssssssssssssssssssssssss");
 
         if (!result) {
             return next(new ResourceNotFoundError('The specified resource is not found.'));
@@ -74,7 +73,6 @@ module.exports = class SuccessHandlerUtil {
    * @description Handle `update` type requests.
    */
     static handleUpdate(response, next, result) {
-        // console.log(result, "resssssssssssssssssssssssssssssssssssssss");
 
         if (!result) {
             return SuccessHandlerUtil._sendResponse(response, HttpStatusCodesUtil.NO_CONTENT);
@@ -82,16 +80,3 @@ module.exports = class SuccessHandlerUtil {
         return SuccessHandlerUtil._sendResponse(response, HttpStatusCodesUtil.OK, result);
     }
 }
-
-
-// module.exports = SuccessHandlerUtil;
-
-
-
-// module.exports = function (err, req, res, next) {
-//     console.log(err);
-//     if(err instanceof ApiError) {
-//         return res.status(err.status).json({message: err.message, errors:err.errors})
-//     }
-//     return res.status(500).json({message:'Hello'})
-// }

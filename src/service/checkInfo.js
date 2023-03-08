@@ -7,7 +7,6 @@ const rel = require('../enum/rel.enum');
 class CheckInfo {
 
   static async checkInfo(furl) {
-    // console.log(furl,"fur;");
     let links = [];
     links = furl.map((el) => el.urls)
     const rank = []
@@ -35,11 +34,7 @@ class CheckInfo {
     const arr = [];
     let uniqueSorted = [];
     let hrefValues = [];
-    let FullInfoAboutExternals = [];
     let ExternalsLinks = [];
-    let dofollow = []
-    let nofollow = []
-    const arrayfromExternals = [];
 
 
     try {
@@ -111,24 +106,7 @@ class CheckInfo {
           return "Please input the correct link"
         }
       }
-
-
     }
-
-// console.log(hrefValues,54);
-// const alfa = await Data.getExternalWithCheck();
-
-
-// for(let j in alfa){
-
-// arrayfromExternals.push(alfa[j].external_urls)
-// rank.push(alfa[j].id)
-// } 
-//     let FullData;
-//     if(rels.length > 0 && arr.length > 0){
-//     FullData = await ChangeUrls.changeUrls(arrayfromExternals)
-//         return [rank,rels, arr,FullData]
-//     }
   }
 }
 

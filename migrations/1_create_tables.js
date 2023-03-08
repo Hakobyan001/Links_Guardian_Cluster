@@ -20,6 +20,14 @@ function up(pg) {
         table.dateTime('created_at');
         table.dateTime('updated_at');
         table.enum('change',['active', 'inactive']).default('active')
+        table.string('new_price');
+        table.string('client_price');
+        table.string('platform');
+        table.string('link_type');
+        table.string('seller_name');
+        table.string('screenshots');
+        table.string('comment');
+        table.string('provider_email');
       })
       .createTable('urls', (table) => {
         table.increments('id').primary();

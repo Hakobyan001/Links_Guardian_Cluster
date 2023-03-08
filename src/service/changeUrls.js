@@ -12,8 +12,6 @@ class ChangeUrls {
     const info = [];
     const info1 = [];
     const information = [];
-    const urlAndRobot = {urlRobot:[]}
-    const urlAndStatus = { urlStatus:[],status:[]}
 
     if (unexts.length > 0) {
       let success;
@@ -87,9 +85,7 @@ class ChangeUrls {
           })
         }
       }
-      // console.log(info,"info");
       return info
-      // const exportData = await inserting([urlAndStatus,urlAndRobot])
     }
 
     static async checkInfoFromMain(furls) {

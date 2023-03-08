@@ -20,8 +20,8 @@ let changedInfoExternals;
 
 
 
-cron.schedule('0 0 0 * * *', () => {
-  console.log('will run every day at 12:00 AM ')
+// cron.schedule('0 0 0 * * *', () => {
+//   console.log('will run every day at 12:00 AM ')
 
 
 async function isPrimary() {
@@ -58,9 +58,9 @@ async function isPrimary() {
                 .from('urls')
                 .where('updated_at', '<', knex.raw('NOW() - INTERVAL \'1 DAY\''))
                 .orWhere('created_at', '<', knex.raw('NOW() - INTERVAL \'1 DAY\''))
-                    .andWhere('external_urls', '=', JSON.parse(msg.data[5][0][temp]).external_urls)
-                    .update({ changeing: [JSON.parse(msg.data[5][0][temp]).rel,JSON.parse(msg.data[5][0][temp]).keyword]})
-                    .update({ updated_at: new Date() });
+                .andWhere('external_urls', '=', JSON.parse(msg.data[5][0][temp]).external_urls)
+                .update({ changeing: [JSON.parse(msg.data[5][0][temp]).rel,JSON.parse(msg.data[5][0][temp]).keyword]})
+                .update({ updated_at: new Date() });
                 }
 
 
@@ -132,4 +132,4 @@ async function isPrimary() {
 }
 
 isPrimary();
-});
+// });

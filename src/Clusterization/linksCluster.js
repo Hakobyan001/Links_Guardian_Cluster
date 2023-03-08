@@ -10,7 +10,6 @@ const UrlService = require('../service/url.service');
 const { option } = require("../../connectSQL");
 const knex = require('knex')(option);
 const numCPUs = require('os').cpus().length;
-const cron = require('node-cron');
 
 // variables
 let start = 0;
@@ -18,8 +17,10 @@ let end = 0;
 let worker = [];
 let changedInfo;
 
-cron.schedule('0 0 0 * * *', () => {
-  console.log('will run every day at 12:00 AM ')
+// cron.schedule('0 0 0 * * *', () => {
+//   console.log('will run every day at 12:00 AM ')
+
+
 
 // Clusterization function
 async function isPrimary() {
@@ -111,4 +112,4 @@ async function isPrimary() {
 }
 
 isPrimary()
-});
+// });

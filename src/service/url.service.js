@@ -189,7 +189,6 @@ class UrlService {
           }
         }
         return info
-        // const exportData = await inserting([urlAndStatus,urlAndRobot])
       }
 
     static async checkInfoFromMain(furls) {

@@ -10,37 +10,45 @@ const Joi = require('joi');
                         robot_tag: Joi.string().valid('indexable', 'noindexable').required(),
                         favicon: Joi.any().allow(null).required(),
                         status: Joi.number().required(),
-                        detales:Joi.object({
+                        details:Joi.object({
                             new_price: Joi.alternatives().try(
                                 Joi.string().valid(null),
+                                Joi.allow(null),
                                 Joi.string()
                               ),
                             client_price: Joi.alternatives().try(
                                 Joi.string().valid(null),
+                                Joi.allow(null),
                                 Joi.string()
                               ),
                             platform: Joi.alternatives().try(
                                 Joi.string().valid(null),
+                                Joi.allow(null),
                                 Joi.string()
                               ),
                             link_type: Joi.alternatives().try(
                                 Joi.string().valid(null),
+                                Joi.allow(null),
                                 Joi.string()
                               ),
                             seller_name: Joi.alternatives().try(
                                 Joi.string().valid(null),
+                                Joi.allow(null),
                                 Joi.string()
                               ),
                             screenshots:Joi.array().items(Joi.alternatives().try(
                                 Joi.string().valid(null),
+                                Joi.allow(null),
                                 Joi.string()
                               )),
                             comment: Joi.alternatives().try(
                                 Joi.string().valid(null),
+                                Joi.allow(null),
                                 Joi.string()
                               ),
                             provider_email:Joi.alternatives().try(
                                 Joi.string().valid(null),
+                                Joi.allow(null),
                                 Joi.string()
                               ),
                         }).required(),                       

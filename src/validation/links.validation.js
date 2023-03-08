@@ -23,10 +23,6 @@ class LinksValidation {
             ValidatorUtil.validateArgs(allData, LinksValidationSchema.LinksSchema, next);
 
         }
-                // const url = Object.keys(req.body)[0];
-            // const data = Object.values(req.body)[0];
-            // const allData = { allData: { url, data } };
-            // ValidatorUtil.validateArgs(allData, LinksValidationSchema.LinksSchema, next);
 
     }
 
