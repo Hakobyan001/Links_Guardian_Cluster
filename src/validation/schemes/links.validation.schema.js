@@ -85,6 +85,15 @@ const Joi = require('joi');
                 body: Joi.array().items(Joi.string().uri({ scheme: ['http', 'https'] }).required())
             }
         }
+        const queriesNumbers = positiveNumber.integer();
+        const validQueries = {
+            getQueries: {
+                query: Joi.object({
+                    userId: queriesNumbers.required(),
+                    page: queriesNumbers.required(),
+                    limit: queriesNumbers.required()
+                })
+            },
+        }
 
-
-module.exports = { LinksValidationSchema, DeleteValidationSchema, RequestValidationSchema };
+module.exports = { LinksValidationSchema, DeleteValidationSchema, RequestValidationSchema, validQueries };

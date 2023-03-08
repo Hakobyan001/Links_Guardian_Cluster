@@ -16,7 +16,7 @@ router.get('/urls/crawled/all',getCrawled);
 router.get('/urls/crawled/count/links',getCrawledLinksCountById);
 router.post('/urls/change', addChange);
 router.get('/urls/changes/all',getChangeData);
-router.post('/urls/getLinks',getLinks );
-router.post('/urls/getFailedLinks',getFailedLinks);
+router.post('/urls/getLinks',getLinks);
+router.post('/urls/getFailedLinks', LinksValidation.validateQueries, getFailedLinks);
 
 module.exports = router;

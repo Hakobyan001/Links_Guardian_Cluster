@@ -321,7 +321,7 @@ class Data {
   }
 
 
-  static async getLinksAndUrls(campaignId, userId) {
+  static async getLinksAndUrls(campaignId) {
     const sendLinks = await knex.from('links').select('urls').where('campaign_id', '=', campaignId);
     const sendUrls = await knex.from('urls').select('external_urls').where('campaign_id', '=', campaignId);
 
@@ -331,53 +331,49 @@ class Data {
     }
   }
 
-  static async getFailedLinks(campaignId) {
+  static async getFailedLinks(userId, page, limit) {
 
-    const changes = {
-      changeMain: [],
-      changeExtRobotStatus: [],
-      changeExtRelKeyword: []
-    };
+    const changes = [];
 
     let title = '';
 
-    const getChangeLinks = await knex.from('links').select('changeing', 'id').orderBy('id').where('campaign_id', '=', campaignId);
+    const getChangeLinks = await knex.from('links').select('changeing', 'id', 'urls').orderBy('id').where('user_id', '=', userId);
 
-    const getOtherData = await knex.from('links').select('robot_tag', 'title', 'favicon', 'status', 'id').orderBy('id').where('campaign_id', '=', campaignId);
+    const getOtherData = await knex.from('links').select('robot_tag', 'title', 'favicon', 'status', 'id').orderBy('id').where('user_id', '=', userId);
 
     for (let dat in getOtherData) {
       if (getChangeLinks[dat].changeing !== null) {
         if (getOtherData[dat].favicon != getChangeLinks[dat].changeing[2] && getOtherData[dat].id === getChangeLinks[dat].id) {
           if (getChangeLinks[dat].changeing.length == 4) {
-            changes.changeMain.push({ id: getChangeLinks[dat].id, oldFavicon: getOtherData[dat].favicon, newFavicon: getChangeLinks[dat].changeing[2] })
+            changes.push({ link: getChangeLinks[dat].urls, id: getChangeLinks[dat].id, oldFavicon: getOtherData[dat].favicon, newFavicon: getChangeLinks[dat].changeing[2] })
           } else {
-            changes.changeMain.push({ id: getChangeLinks[dat].id, oldFavicon: getOtherData[dat].favicon, newFavicon: getChangeLinks[dat].changeing[getChangeLinks[dat].changeing.length - 2] })
+            changes.push({ link: getChangeLinks[dat].urls, id: getChangeLinks[dat].id, oldFavicon: getOtherData[dat].favicon, newFavicon: getChangeLinks[dat].changeing[getChangeLinks[dat].changeing.length - 2] })
           }
         }
         if (getOtherData[dat].robot_tag != getChangeLinks[dat].changeing[1] && getOtherData[dat].id === getChangeLinks[dat].id) {
           if (getChangeLinks[dat].changeing.length == 4) {
             if (getChangeLinks[dat].changeing[1] != 'indexable') {
-              changes.changeMain.push({ id: getChangeLinks[dat].id, oldRobot: getOtherData[dat].robot_tag, newRobot: getChangeLinks[dat].changeing[1] })
+              changes.push({ link: getChangeLinks[dat].urls, id: getChangeLinks[dat].id, oldRobot: getOtherData[dat].robot_tag, newRobot: getChangeLinks[dat].changeing[1] })
             }
           } else {
             if (getChangeLinks[dat].changeing[getChangeLinks[dat].changeing.length - 3] != 'indexable') {
-              changes.changeMain.push({ id: getChangeLinks[dat].id, oldRobot: getOtherData[dat].robot_tag, newRobot: getChangeLinks[dat].changeing[getChangeLinks[dat].changeing.length - 3] })
+              changes.push({ link: getChangeLinks[dat].urls, id: getChangeLinks[dat].id, oldRobot: getOtherData[dat].robot_tag, newRobot: getChangeLinks[dat].changeing[getChangeLinks[dat].changeing.length - 3] })
             }
           }
         } if (getOtherData[dat].status != getChangeLinks[dat].changeing[3] && getOtherData[dat].id === getChangeLinks[dat].id) {
           if (getChangeLinks[dat].changeing.length == 4) {
             if (getChangeLinks[dat].changeing[3] != 200) {
-              changes.changeMain.push({ id: getChangeLinks[dat].id, oldStatus: getOtherData[dat].status, newStatus: getChangeLinks[dat].changeing[3] })
+              changes.push({ link: getChangeLinks[dat].urls, id: getChangeLinks[dat].id, oldStatus: getOtherData[dat].status, newStatus: getChangeLinks[dat].changeing[3] })
             }
           } else {
             if (getChangeLinks[dat].changeing[getChangeLinks[dat].changeing.length - 1] != 200) {
-              changes.changeMain.push({ id: getChangeLinks[dat].id, oldStatus: getOtherData[dat].status, newStatus: getChangeLinks[dat].changeing[getChangeLinks[dat].changeing.length - 1] })
+              changes.push({ link: getChangeLinks[dat].urls, id: getChangeLinks[dat].id, oldStatus: getOtherData[dat].status, newStatus: getChangeLinks[dat].changeing[getChangeLinks[dat].changeing.length - 1] })
             }
           }
         }
         if (getOtherData[dat].title != getChangeLinks[dat].changeing[0] && getOtherData[dat].id === getChangeLinks[dat].id) {
           if (getChangeLinks[dat].changeing.length == 4) {
-            changes.changeMain.push({ id: getChangeLinks[dat].id, oldTitle: getOtherData[dat].title, newTitle: getChangeLinks[dat].changeing[0] })
+            changes.push({ link: getChangeLinks[dat].urls, id: getChangeLinks[dat].id, oldTitle: getOtherData[dat].title, newTitle: getChangeLinks[dat].changeing[0] })
           } else {
             for (let i = 0; i < 3; i++) {
               getChangeLinks[dat].changeing.pop();
@@ -391,47 +387,62 @@ class Data {
                 }
               }
             }
-            changes.changeMain.push({ id: getChangeLinks[dat].id, oldTitle: getOtherData[dat].title, newTitle: title })
+            changes.push({ link: getChangeLinks[dat].urls, id: getChangeLinks[dat].id, oldTitle: getOtherData[dat].title, newTitle: title })
           }
         }
       }
     }
 
-    const getChangeUrls = await knex.from('urls').select('changeing', 'id').orderBy('id').where('campaign_id', '=', campaignId);
-    const getOtherDataExternals = await knex.from('urls').select('rel', 'keyword', 'id').orderBy('id').where('campaign_id', '=', campaignId);
+    const getChangeUrls = await knex.from('urls').select('changeing', 'id', 'external_urls').orderBy('id').where('user_id', '=', userId);
+    const getOtherDataExternals = await knex.from('urls').select('rel', 'keyword', 'id').orderBy('id').where('user_id', '=', userId);
 
     for (let dat in getOtherDataExternals) {
       if (getChangeUrls[dat].changeing !== null) {
         if (getOtherDataExternals[dat].rel != getChangeUrls[dat].changeing[0] && getOtherDataExternals[dat].id === getChangeUrls[dat].id) {
           if (getChangeUrls[dat].changeing[0] != 'dofollow') {
-            changes.changeExtRelKeyword.push({ id: getChangeUrls[dat].id, oldRel: getOtherDataExternals[dat].rel, newRel: getChangeUrls[dat].changeing[0] })
+            changes.push({ url: getChangeUrls[dat].external_urls, id: getChangeUrls[dat].id, oldRel: getOtherDataExternals[dat].rel, newRel: getChangeUrls[dat].changeing[0] })
           }
         } if (getOtherDataExternals[dat].keyword != getChangeUrls[dat].changeing[1] && getOtherDataExternals[dat].id === getChangeUrls[dat].id) {
-          changes.changeExtRelKeyword.push({ id: getChangeUrls[dat].id, oldKeyword: getOtherDataExternals[dat].keyword, newKeyword: getChangeUrls[dat].changeing[1] })
+          changes.push({ url: getChangeUrls[dat].external_urls, id: getChangeUrls[dat].id, oldKeyword: getOtherDataExternals[dat].keyword, newKeyword: getChangeUrls[dat].changeing[1] })
         }
       }
 
     }
 
-    const getChangeStatus = await knex.from('urls').select('changeing_status', 'id').orderBy('id').where('campaign_id', '=', campaignId);
-    const getOtherExternals = await knex.from('urls').select('robot_tag', 'status', 'id').orderBy('id').where('campaign_id', '=', campaignId);
+    const getChangeStatus = await knex.from('urls').select('changeing_status', 'id', 'external_urls').orderBy('id').where('user_id', '=', userId);
+    const getOtherExternals = await knex.from('urls').select('robot_tag', 'status', 'id').orderBy('id').where('user_id', '=', userId);
 
     for (let dat in getOtherExternals) {
       if (getChangeStatus[dat].changeing_status !== null) {
         if (getOtherExternals[dat].robot_tag != getChangeStatus[dat].changeing_status[1] && getOtherExternals[dat].id === getChangeStatus[dat].id) {
           if (getChangeStatus[dat].changeing_status[1] != 'indexable') {
-            changes.changeExtRobotStatus.push({ id: getChangeStatus[dat].id, oldRobot: getOtherExternals[dat].robot_tag, newRobot: getChangeStatus[dat].changeing_status[1] })
+            changes.push({ url: getChangeStatus[dat].external_urls, id: getChangeStatus[dat].id, oldRobot: getOtherExternals[dat].robot_tag, newRobot: getChangeStatus[dat].changeing_status[1] })
           }
         } if (getOtherExternals[dat].status != getChangeStatus[dat].changeing_status[0] && getOtherExternals[dat].id === getChangeStatus[dat].id) {
           if (getChangeStatus[dat].changeing_status[0] != 200) {
-            changes.changeExtRobotStatus.push({ id: getChangeStatus[dat].id, oldStatus: getOtherExternals[dat].status, newStatus: getChangeStatus[dat].changeing_status[0] })
+            changes.push({ url: getChangeStatus[dat].external_urls, id: getChangeStatus[dat].id, oldStatus: getOtherExternals[dat].status, newStatus: getChangeStatus[dat].changeing_status[0] })
           }
         }
       }
-
     }
 
-    return changes;
+    // calculating the starting and ending index
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+
+    const totalPages = Math.ceil(changes.length/limit);
+
+    const results = {};
+
+    if (startIndex == 0 || startIndex) {
+      results.current_page = Number(page),
+      results.limit = Number(limit),
+      results.totalPages = totalPages
+    }
+    
+    results.results = changes.slice(startIndex, endIndex);
+
+    return results;
   }
 
 }

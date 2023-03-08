@@ -27,7 +27,6 @@ class UrlsController {
       next(error);
     }
   }
-
   static async test(req, res, next) {
     try {
       const val = req.body;
@@ -44,7 +43,7 @@ class UrlsController {
       worker.on('message', async function (msg) {
         let array = msg.flat(2);
         for (let i = 0; i < url.length; i++) {
-          var extrs = data[i][0].externalInfo;
+          var extrs = data[i][0].externalInfo ;
           let arr3 = extrs = extrs.map(obj1 => {
             const matchingObj2 = array.find(obj2 => obj1.url === obj2.url || obj1.url + '/' === obj2.url || obj1.url === obj2.url + '/');
             return { ...obj1, ...matchingObj2 };
@@ -52,8 +51,7 @@ class UrlsController {
           data[i][0].link = domains[i];
           data[i][0].externalInfo = arr3
         }
-        // res.send(data)
-        SuccessHandlerUtil.handleAdd(res, next, { success: true });
+        res.send(data)
         data = null
       })
     } catch (error) {
@@ -197,9 +195,12 @@ class UrlsController {
 
   static async getFailedLinks(req, res, next) {
     try {
-      const campaignId = req.query.campaignId;
-      const changesData = await UrlsModel.getFailedLinks(campaignId);
-      res.send(changesData)
+      const userId = req.query.userId;
+      const page = req.query.page;
+      const limit = req.query.limit;
+
+      const changesData = await UrlsModel.getFailedLinks(userId, page, limit);
+      SuccessHandlerUtil.handleGet(res, next, changesData);
     } catch (error) {
       next(error);
     }
