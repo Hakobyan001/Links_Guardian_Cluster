@@ -1,14 +1,9 @@
 const UrlsModel = require('../models/urls.model.js')
-const LinkService = require('../service/link.service')
 const CheckerLinks = require('../service/linksChecker');
-const RedirectedLinks = require('../service/links.redirected')
-const UrlService = require('../service/url.service');
 const child_process = require('child_process');
 const insertTable = require('../inserttable/inserttable');
 const OnlyStatusChecker = require('../service/mainLinks.redirect');
-const { LogError } = require('concurrently');
 const SuccessHandlerUtil = require('../utils/success-handler.util.js');
-const { userInfo } = require('os');
 
 
 class UrlsController {
@@ -27,42 +22,47 @@ class UrlsController {
       next(error);
     }
   }
-  static async test(req, res, next) {
+  
+static async test(req, res, next) {
     try {
-      const val = req.body;
-      let data = [];
-      const url = Object.values(val);
-      let info2;
-      let domains = [];
-      for (let i = 0; i < url.length; i++) {
-        domains.push(url[i])
-        info2 = await CheckerLinks.linkTest(url[i]);
-        data.push(info2)
+      const values = req.body;
+      const url = Object.values(values);
+      let result = [];
+      const info = await Promise.allSettled(url.map((url) => CheckerLinks.linkTest(url)));
+      for(let i = 0; i < url.length; i++){
+        result.push(info[i].value)
       }
-      const worker = child_process.fork('src/Clusterization/cluster.js')
-      worker.on('message', async function (msg) {
-        let array = msg.flat(2);
-        for (let i = 0; i < url.length; i++) {
-          var extrs = data[i][0].externalInfo ;
-          let arr3 = extrs = extrs.map(obj1 => {
-            const matchingObj2 = array.find(obj2 => obj1.url === obj2.url || obj1.url + '/' === obj2.url || obj1.url === obj2.url + '/');
-            return { ...obj1, ...matchingObj2 };
-          });
-          data[i][0].link = domains[i];
-          data[i][0].externalInfo = arr3
-        }
-        res.send(data)
-        data = null
-      })
+      const final = result.flat()
+      res.send(final)
     } catch (error) {
       next(error);
     }
   }
 
+static async checker(req,res,next) {
+    try {
+        let array;
+        const value = Object.values(req.body).flat(2) 
+        const worker = child_process.fork('src/Clusterization/cluster.js')
+        worker.send(value);
+        worker.on('message', async function (msg) {
+          array = msg.flat(2);
+          res.send({
+            link: Object.keys(req.body),
+            externalIfno: array
+          })
+        })
+    }catch(err){
+      next(err)
+    }
+}
+    
   static async addLinks(req, res, next) {
     try {
       const val = req.body;
+      console.log(val,"ss");
       const url = await insertTable.insertTable(val);
+      console.log(url,"url");
       if(url == undefined) {
       SuccessHandlerUtil.handleAdd(res, next, { success: false });
       }else {
@@ -182,6 +182,7 @@ class UrlsController {
       next(error);
     }
   }
+
   static async getLinks(req, res, next) {
     try {
       const campaignId = req.query.campaignId;

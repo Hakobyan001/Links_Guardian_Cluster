@@ -17,8 +17,6 @@ class UrlService {
     const info = [];
     const info1 = [];
     const information = [];
-    const urlAndRobot = {urlRobot:[]}
-    const urlAndStatus = { urlStatus:[],status:[]}
     const arrFromStatus= []
     const arrFromRobot = []
 
@@ -65,7 +63,7 @@ class UrlService {
             success = result.value.value.status
             externalStatus.push(success);
             information.push({
-              url: result.value.value.url,
+              url: unexts[index],
               text: texts
             })
           }
@@ -103,21 +101,14 @@ class UrlService {
     }
 
     static async anotherChecking(domain) {
-      let alfa = [];
-      let unexts = [];
-      for(let k = 0; k<domain.length; k++) {
-        alfa.push(domain[k].external_urls);
-      }
-      unexts = alfa;
+    
       const externalStatus = []
       const robotExternals = [];
       const info = [];
       const info1 = [];
       const information = [];
-      const urlAndRobot = {urlRobot:[]}
-      const urlAndStatus = { urlStatus:[],status:[]}
   
-      if (unexts.length > 0) {
+      if (domain.length > 0) {
         let success;
         const fetchData = async link => {
           try {
@@ -133,12 +124,12 @@ class UrlService {
             }
           }
         }
-        const dataExternal = await Promise.allSettled(unexts.map(fetchData))
+        const dataExternal = await Promise.allSettled(domain.map(fetchData))
         .then(results => {
           results.forEach((result, index) => {
             if (String(result.value.value.cause).includes('Error: Client network') && String(result.value.value.code).includes('UND_ERR_SOCKET')) {
               info1.push({
-                url: unexts[index],
+                url: domain[index],
                 text: 'null',
                 status: 404
               })
@@ -146,11 +137,11 @@ class UrlService {
             } else if (result.value.status === "rejected") {
               const texts = result.value.value;
               information.push({
-                url: unexts[index],
+                url: domain[index],
                 text: texts
               })
               info1.push({
-                url: unexts[index],
+                url: domain[index],
                 text: 'null',
                 status: 503
               })
@@ -159,7 +150,7 @@ class UrlService {
               success = result.value.value.status
               externalStatus.push(success);
               information.push({
-                url: unexts[index],
+                url: domain[index],
                 text: texts
               })
             }

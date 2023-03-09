@@ -1,4 +1,4 @@
-const { LinksValidationSchema, DeleteValidationSchema, RequestValidationSchema, validQueries } = require('./schemes/links.validation.schema');
+const { LinksValidationSchema, DeleteValidationSchema, RequestValidationSchema, validQueries, checkerValidationSchema } = require('./schemes/links.validation.schema');
 const ValidatorUtil = require('./util/validator.util');
 
 class LinksValidation {
@@ -39,6 +39,14 @@ class LinksValidation {
         ValidatorUtil.validateArgs(req, validQueries.getQueries, next);
     }
 
+    
+    static validateChecker(req, res, next) {
+        const url = Object.keys(req.body)[0];
+        const data = Object.values(req.body).flat();
+        const fullData = {allData: {url, data}}
+        console.log(fullData);
+        ValidatorUtil.validateArgs(fullData, checkerValidationSchema.checkerSchema, next);
+    }
 }
 
 module.exports = LinksValidation;

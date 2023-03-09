@@ -20,9 +20,8 @@ class Insert {
         const links = Object.keys(info)
 
         const alfa = Object.values(info)
-        console.log(alfa);
 
-
+        let takeExistIds;
         let linksDatas = [];
         let urlsDatas;
         for (let ur = 0; ur < alfa.length; ur++) {
@@ -73,7 +72,7 @@ class Insert {
                 ]
 
                 //insert Unique data
-                const takeExistIds = await knex('urls').count('campaign_id').where('campaign_id', '=', alfa[ur].campaign_id)
+                 takeExistIds = await knex('urls').count('campaign_id').where('campaign_id', '=', alfa[ur].campaign_id)
 
                 if (Number(takeExistIds[0].count) == 0 || Number(takeExistIds[0].count) < insertUrls.length ) {
                     const alfaAboutJoinsUrls = await knex('urls')
@@ -81,10 +80,9 @@ class Insert {
 
                 }
 
-                return [mainLinkCount, takeExistIds];
             }
-            
-        }
+            return [mainLinkCount, takeExistIds];
+            }
         }
     }
 

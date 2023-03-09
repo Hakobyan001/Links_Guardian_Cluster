@@ -18,19 +18,21 @@ async function isPrimary() {
 
   if (cluster.isPrimary) {
     
+    
+    let extrsPromise = new Promise((resolve) => {
+      process.on('message', (value) => {
+        resolve(value);
+      });
+    });
+    let links = await extrsPromise;
+    
     let step;
-    const links = await Data.getUrls();
-    if(links.length < numCPUs){
+    if (links.length < numCPUs) {
       step = 1
-    }else{
+    } else{
       step = 5
     }
     const limit = links.length;
-    if(limit === 0) {
-      process.send([]);
-    }
-
-    await Data.delData()
 
 
     for (let i = 0; i < numCPUs; i += 1) {

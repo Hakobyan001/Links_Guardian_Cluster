@@ -1,10 +1,11 @@
 const express = require("express")
 
-const {  test,addLinks,deleteUrls ,getLiveUrls,getCrawled, addChange, fullOnlyStatus,getFailed, getCrawledById, getCrawledLinksCountById, getChangesById,getChangeData,getLinks,getFailedLinks} = require('../controllers/urls.controller');
+const {  test,addLinks,deleteUrls ,checker, getLiveUrls,getCrawled, addChange, fullOnlyStatus,getFailed, getCrawledById, getCrawledLinksCountById, getChangesById,getChangeData,getLinks,getFailedLinks} = require('../controllers/urls.controller');
 const LinksValidation = require("../validation/links.validation");
 const router = express.Router();
 
-router.post('/urls/test', LinksValidation.validateRequest, test); // validation here
+router.post('/urls/test', LinksValidation.validateRequest, test); 
+router.post('/urls/checker', LinksValidation.validateChecker, checker);
 router.post('/urls/freeRequest', LinksValidation.validateRequest, fullOnlyStatus);
 router.post('/urls/links',LinksValidation.validateLinksArgs, addLinks);
 router.delete('/urls', LinksValidation.validateId, deleteUrls);

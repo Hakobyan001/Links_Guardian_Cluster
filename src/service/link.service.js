@@ -129,7 +129,6 @@ class LinkService {
           return "Problem"
         }
       }
-         const infoLinks = await urlsModel.insertUrls(hrefValues);
          return info;
   }
 }  

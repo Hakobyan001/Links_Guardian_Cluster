@@ -96,4 +96,15 @@ const Joi = require('joi');
             },
         }
 
-module.exports = { LinksValidationSchema, DeleteValidationSchema, RequestValidationSchema, validQueries };
+        const checkerValidationSchema = {
+            checkerSchema: {
+                allData: Joi.object({
+                    url:Joi.string().uri({ scheme: ['http', 'https'] }).required() ,
+                    data: Joi.array().items(Joi.string().uri({ scheme: ['http', 'https'] }).required())
+                })
+            }
+        }
+
+
+
+module.exports = { LinksValidationSchema, DeleteValidationSchema, RequestValidationSchema, validQueries, checkerValidationSchema };
