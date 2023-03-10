@@ -332,7 +332,7 @@ class Data {
    
 
     const info = [];
-    if (!sendLinks[0].changeing && !sendUrls[0].changeing){
+    if (!sendLinks[0].changeing || !sendUrls[0].changeing){
         
       for (let i = 0; i < sendUrls.length; i++) {
         externalInfo.push({
