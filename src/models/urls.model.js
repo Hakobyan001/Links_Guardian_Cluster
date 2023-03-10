@@ -225,6 +225,7 @@ class Data {
     };
 
     let title = '';
+    let keyword = '';
 
     const getChangeLinks = await knex.from('links').select('changeing', 'id').orderBy('id');
 
@@ -295,8 +296,29 @@ class Data {
       if (getChangeUrls[dat].changeing !== null) {
         if (getOtherDataExternals[dat].rel != getChangeUrls[dat].changeing[0] && getOtherDataExternals[dat].id === getChangeUrls[dat].id) {
           changes.changeExtRelKeyword.push({ id: getChangeUrls[dat].id, oldRel: getOtherDataExternals[dat].rel, newRel: getChangeUrls[dat].changeing[0] })
-        } if (getOtherDataExternals[dat].keyword != getChangeUrls[dat].changeing[1] && getOtherDataExternals[dat].id === getChangeUrls[dat].id) {
-          changes.changeExtRelKeyword.push({ id: getChangeUrls[dat].id, oldKeyword: getOtherDataExternals[dat].keyword, newKeyword: getChangeUrls[dat].changeing[1] })
+        }
+        if (getChangeUrls[dat].changeing.length == 2) {
+          if (getOtherDataExternals[dat].keyword != getChangeUrls[dat].changeing[1] && getOtherDataExternals[dat].id === getChangeUrls[dat].id) {
+            changes.changeExtRelKeyword.push({ id: getChangeUrls[dat].id, oldKeyword: getOtherDataExternals[dat].keyword, newKeyword: getChangeUrls[dat].changeing[1] })
+          }
+        } else {
+          for (let i = 0; i < 1; i++) {
+            getChangeUrls[dat].changeing.shift();
+          }
+          for (let k = 0; k < getChangeUrls[dat].changeing.length; k++) {
+            if (getChangeUrls[dat].changeing[k] !== undefined) {
+              if (k == getChangeUrls[dat].changeing.length - 1) {
+                keyword += getChangeUrls[dat].changeing[k]
+              } else {
+                keyword += getChangeUrls[dat].changeing[k] + ', '
+              }
+            }
+
+          }
+
+          if (getOtherDataExternals[dat].keyword != keyword && getOtherDataExternals[dat].id === getChangeUrls[dat].id) {
+            changes.changeExtRelKeyword.push({ id: getChangeUrls[dat].id, oldKeyword: getOtherDataExternals[dat].keyword, newKeyword: keyword })
+          }
         }
       }
 
@@ -484,8 +506,6 @@ class Data {
     });
   }
 
-
-
     return info;
   }
 
@@ -494,6 +514,7 @@ class Data {
     const changes = [];
 
     let title = '';
+    let keyword = '';
 
     const getChangeLinks = await knex.from('links').select('changeing', 'id', 'urls').orderBy('id').where('user_id', '=', userId);
 
@@ -554,6 +575,7 @@ class Data {
     const getChangeUrls = await knex.from('urls').select('changeing', 'id', 'external_urls').orderBy('id').where('user_id', '=', userId);
     const getOtherDataExternals = await knex.from('urls').select('rel', 'keyword', 'id').orderBy('id').where('user_id', '=', userId);
 
+
     for (let dat in getOtherDataExternals) {
       if (getChangeUrls[dat].changeing !== null) {
         if (getOtherDataExternals[dat].rel != getChangeUrls[dat].changeing[0] && getOtherDataExternals[dat].id === getChangeUrls[dat].id) {
@@ -561,10 +583,25 @@ class Data {
             changes.push({ url: getChangeUrls[dat].external_urls, id: getChangeUrls[dat].id, oldRel: getOtherDataExternals[dat].rel, newRel: getChangeUrls[dat].changeing[0] })
           }
         } if (getOtherDataExternals[dat].keyword != getChangeUrls[dat].changeing[1] && getOtherDataExternals[dat].id === getChangeUrls[dat].id) {
-          changes.push({ url: getChangeUrls[dat].external_urls, id: getChangeUrls[dat].id, oldKeyword: getOtherDataExternals[dat].keyword, newKeyword: getChangeUrls[dat].changeing[1] })
+          if (getChangeUrls[dat].changeing.length == 2) {
+            changes.push({ url: getChangeUrls[dat].external_urls, id: getChangeUrls[dat].id, oldKeyword: getOtherDataExternals[dat].keyword, newKeyword: getChangeUrls[dat].changeing[1] })
+          } else {
+            for (let i = 0; i < 1; i++) {
+              getChangeUrls[dat].changeing.shift();
+            }
+            for (let k = 0; k < getChangeUrls[dat].changeing.length; k++) {
+              if (getChangeUrls[dat].changeing[k] !== undefined) {
+                if (k == getChangeUrls[dat].changeing.length - 1) {
+                  keyword += getChangeUrls[dat].changeing[k]
+                } else {
+                  keyword += getChangeUrls[dat].changeing[k] + ', '
+                }
+              }
+            }
+            changes.push({ url: getChangeUrls[dat].external_urls, id: getChangeUrls[dat].id, oldKeyword: getOtherDataExternals[dat].keyword, newKeyword: keyword })
+          }
         }
       }
-
     }
 
     const getChangeStatus = await knex.from('urls').select('changeing_status', 'id', 'external_urls').orderBy('id').where('user_id', '=', userId);
@@ -602,6 +639,7 @@ class Data {
 
     return results;
   }
+
 
 }
 
