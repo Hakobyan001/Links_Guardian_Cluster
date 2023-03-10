@@ -328,40 +328,37 @@ class Data {
 
     const externalInfo = [];
 
-
+    console.log(sendLinks,"links");
+    
     for (let i = 0; i < sendUrls.length; i++) {
       externalInfo.push({
         id: sendUrls[i].id,
         external_urls: sendUrls[i].external_urls,
-        rel: sendUrls[i].changeing[0],
-        keyword: sendUrls[i].changeing[1],
-        robot_tag: sendUrls[i].changeing_status[1],
-        status: sendUrls[i].changeing_status[0],
+        rel: sendUrls[i].rel,
+        keyword: sendUrls[i].keyword,
+        robot_tag: sendUrls[i].robot_tag,
+        status: sendUrls[i].status,
         campaign_id: sendUrls[i].campaign_id,
         user_id: sendUrls[i].user_id,
         main_link: sendUrls[i].main_link,
         links_id: sendUrls[i].links_id,
         created_at: sendUrls[i].created_at,
-        updated_at: sendUrls[i].updated_at,
-        updated_at_for_status: sendUrls[i].updated_at_for_status,
         change: sendUrls[i].change,
       })
     }
-
+    
     const info = [];
-    if (sendLinks[0].changeing.length == 4) {
       info.push({
         id: sendLinks[0].id,
         link: sendLinks[0].urls,
         externals: sendUrls.length,
-        title: sendLinks[0].changeing[0],
-        robot_tag: sendLinks[0].changeing[1],
-        favicon: sendLinks[0].changeing[2],
-        status: sendLinks[0].changeing[3],
+        title: sendLinks[0].title,
+        robot_tag: sendLinks[0].robot_tag,
+        favicon: sendLinks[0].favicon,
+        status: sendLinks[0].status,
         campaign_id: sendLinks[0].campaign_id,
         user_id: sendLinks[0].user_id,
         created_at: sendLinks[0].created_at,
-        updated_at: sendLinks[0].updated_at,
         change: sendLinks[0].change,
         new_price: sendLinks[0].new_price,
         client_price: sendLinks[0].client_price,
@@ -373,54 +370,6 @@ class Data {
         provider_email: sendLinks[0].provider_email,
         externalInfo: externalInfo
       });
-  }else {
-    let title = '';
-    let titleArr;
-
-    const b = [...sendLinks[0].changeing]
-
-    titleArr = sendLinks[0].changeing
-
-    
-    for (let i = 0; i < 3; i++) {
-      titleArr.pop();
-    }
-    for (let k = 0; k < titleArr.length; k++) {
-      if (titleArr[k] !== undefined) {
-        if (k == titleArr.length - 1) {
-          title += titleArr[k]
-        } else {
-          title += titleArr[k] + ', '
-        }
-      }
-    }
-
-    info.push({
-      id: sendLinks[0].id,
-      link: sendLinks[0].urls,
-      externals: sendUrls.length,
-      title: title,
-      robot_tag: b[b.length-3],
-      favicon: b[b.length-2],
-      status: b[b.length-1],
-      campaign_id: sendLinks[0].campaign_id,
-      user_id: sendLinks[0].user_id,
-      created_at: sendLinks[0].created_at,
-      updated_at: sendLinks[0].updated_at,
-      change: sendLinks[0].change,
-      new_price: sendLinks[0].new_price,
-      client_price: sendLinks[0].client_price,
-      platform: sendLinks[0].platform,
-      link_type: sendLinks[0].link_type,
-      seller_name: sendLinks[0].seller_name,
-      screenshots: sendLinks[0].screenshots,
-      comment: sendLinks[0].comment,
-      provider_email: sendLinks[0].provider_email,
-      externalInfo: externalInfo
-    });
-  }
-
-
 
     return info;
   }
