@@ -28,8 +28,6 @@ async function isPrimary() {
   if (cluster.isPrimary) {
 
 
-
-
     const links = await Data.getLinksForChange()
     const limit = links.length
 
